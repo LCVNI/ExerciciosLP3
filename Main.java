@@ -1,17 +1,23 @@
 public class Main {
     public static void main(String[] args) {
-        for (int i = 1; i <= 5; i++) {
-            // 1. Cria o nome dinâmico para diferenciar cada uma
-            String identificador = "Vendedor-" + i;
+        Catracas runnable = new Catracas();
+        Thread t0 = new Thread(runnable);
+        Thread t1 = new Thread(runnable);
+        Thread t2 = new Thread(runnable);
+        Thread t3 = new Thread(runnable);
 
-            // 2. Passa o nome para a outra classe
-            Runnable tarefa = new Vendedor(identificador);
-
-            // 3. Instancia a Thread (também podemos dar o nome oficial dela na JVM)
-            Thread t = new Thread(tarefa, identificador);
-
-            // 4. Inicia a thread
-            t.start();
+        t0.start();
+        t1.start();
+        t2.start();
+        t3.start();
+        try{
+            Thread.sleep(10000);
+        } catch(InterruptedException e){
+            System.out.println("Sleep interrompido");
         }
+
+        System.out.println("Log 1: " + Catracas.historicoLogs.get(0));
+        System.out.println("Ultimo log: " + Catracas.historicoLogs.get(Catracas.historicoLogs.size() - 1));
+
     }
 }
