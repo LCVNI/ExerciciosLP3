@@ -1,23 +1,28 @@
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
+
 public class Main {
-    public static void main(String[] args) {
-        Catracas runnable = new Catracas();
-        Thread t0 = new Thread(runnable);
-        Thread t1 = new Thread(runnable);
-        Thread t2 = new Thread(runnable);
-        Thread t3 = new Thread(runnable);
+    public volatile static boolean sinalParada = false;
+    public static void main(String[] args){
+        Leitura sensor1 = new Leitura();
+        Leitura sensor2 = new Leitura();
+        Leitura sensor3 = new Leitura();
+        Painel mostrar = new Painel();
+        ExecutorService executor = Executors.newFixedThreadPool(4);
 
-        t0.start();
-        t1.start();
-        t2.start();
-        t3.start();
-        try{
-            Thread.sleep(10000);
-        } catch(InterruptedException e){
-            System.out.println("Sleep interrompido");
+        executor.submit(sensor1);
+        executor.submit(sensor2);
+        executor.submit(sensor3);
+        executor.submit(mostrar);
+
+        try {
+            Thread.sleep(200);
+            sinalParada = true;
+            executor.shutdown();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-
-        System.out.println("Log 1: " + Catracas.historicoLogs.get(0));
-        System.out.println("Ultimo log: " + Catracas.historicoLogs.get(Catracas.historicoLogs.size() - 1));
+        System.out.println(Leitura.leituras.isEmpty());
 
     }
 }
