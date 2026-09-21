@@ -1,8 +1,10 @@
-public class Pedido {
+public class Nota {
     int id;
     String cliente;
     double valor;
-    public Pedido(int id, String cliente, double valor){
+    String uf;
+    public Nota(int id, String cliente, double valor, String uf){
+        this.uf = uf;
         this.cliente = cliente;
         this.id = id;
         this.valor = valor;
