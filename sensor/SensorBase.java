@@ -20,4 +20,12 @@ public abstract class SensorBase implements Sensor {
         Leitura leitura = new Leitura(getId(), getTipo(), gerarValor());
         return leitura; 
     }
+
+    @Override
+    public boolean emAlerta(Leitura leitura) {
+        if(leitura.valor() > limiteAlerta()){
+            return true;
+        }
+        return false;
+    }
 }
