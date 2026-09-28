@@ -1,15 +1,20 @@
 package coordenacao;
 //import java.util.ArrayList;
-import java.util.concurrent.CyclicBarrier;
 import dados.*;
 import modelo.TipoSensor;
 import controle.*;
 public class ConsolidadorRodada implements Runnable{
-    Estatisticas stats = new Estatisticas();
-    UltimasLeituras ultimas = new UltimasLeituras();
+    Estatisticas stats;
+    UltimasLeituras ultimas;
+    EstadoSistema estado;
+    public ConsolidadorRodada(Estatisticas stats, UltimasLeituras ultimas, EstadoSistema estado){
+        this.stats = stats;
+        this.ultimas = ultimas;
+        this.estado = estado;
+    }
     @Override
     public void run() {
-        CyclicBarrier barreira = new CyclicBarrier(3, this);
+        int rodada = stats.proximaRodada();
         //ArrayList<Double> medias = new ArrayList<>();
         System.out.println("Media por tipo de sensor:");
         for(TipoSensor t: TipoSensor.values()){
@@ -17,9 +22,11 @@ public class ConsolidadorRodada implements Runnable{
             System.out.println(t + ": "+ ultimas.mediaPorTipo(t)+t.getUnidade());
         }
         System.out.println("Thread atual: " + Thread.currentThread().getName());
+        System.out.println("Rodada atual: " + rodada);
         PoliticaDesligamento politica = new PoliticaDesligamento(10);
-        politica.deveDesligar(stats);
-        new TarefaSensor(barreira);
+        if (politica.deveDesligar(stats)) {
+            estado.desligar();
+        }
     }
     
 }
