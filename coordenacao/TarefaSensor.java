@@ -31,7 +31,7 @@ public class TarefaSensor implements Callable<Integer> {
     @Override
     public Integer call() throws Exception {
         int contLeituras = 0;
-        while(estado.estaAtivo() && stats.getLeituras().get() < central.getMaxLeituras().get()){
+        while(estado.estaAtivo() && stats.getLeituras().get() < central.getMaxLeituras()){
 
             processar(sensor.ler());
             contLeituras++;
