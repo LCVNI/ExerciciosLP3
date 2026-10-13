@@ -17,6 +17,8 @@ public class Estacionamento {
     private final AtomicInteger totalEntradas = new AtomicInteger(0);
     private final AtomicInteger totalDesistencias = new AtomicInteger(0);
 
+    private boolean temVaga = false;
+
     // ==================== ENTRADA ====================
 
     /**
@@ -57,13 +59,14 @@ public class Estacionamento {
         TipoVaga vaga = null;
         if(ehPrioritario(veiculo)){
             vaga = TipoVaga.PRIORITARIA;
-            if(!vagasPrioritarias.tryAcquire()){
-                vagasRegulares.tryAcquire(TIMEOUT_VAGA_MS, TimeUnit.MILLISECONDS);
+            temVaga = vagasPrioritarias.tryAcquire();
+            if(!temVaga){
+                temVaga = vagasRegulares.tryAcquire(TIMEOUT_VAGA_MS, TimeUnit.MILLISECONDS);
             }
         }
         else{
             vaga = TipoVaga.REGULAR;
-            vagasRegulares.tryAcquire(TIMEOUT_VAGA_MS, TimeUnit.MILLISECONDS);
+            temVaga = vagasRegulares.tryAcquire(TIMEOUT_VAGA_MS, TimeUnit.MILLISECONDS);
         }
         return Optional.ofNullable(vaga);
     }
@@ -72,7 +75,14 @@ public class Estacionamento {
         // TODO 4:
         // - Se há vaga: incrementar totalEntradas e logar "conseguiu vaga <TIPO>"
         // - Senão: incrementar totalDesistencias e logar "DESISTIU: sem vaga após 2000ms"
-        
+        if(temVaga){
+            totalEntradas.incrementAndGet();
+            Log.registrar(veiculo, "conseguiu vaga " + vaga);
+        }
+        else{
+            totalDesistencias.incrementAndGet();
+            Log.registrar(veiculo, "DESISTIU: sem vaga apos 2000ms");
+        }
     }
 
     private boolean ehPrioritario(Veiculo veiculo) {
@@ -89,12 +99,26 @@ public class Estacionamento {
         //    - Liberar a vaga correta (use semaforoDa(vaga))
         //    - Log: "saiu com sucesso!"
         // 3. No finally: liberar o portão de saída
+        portaoSaida.acquire();
+        try{
+            Log.registrar(veiculo, "Esta saindo do estacionamento...");
+            semaforoDa(vaga);
+            Log.registrar(veiculo, "saiu com sucesso!");
+        }
+        catch(Exception e){
+            System.out.println("Excecao");
+        }
+        finally{
+            portaoSaida.release();
+        }
     }
 
     /** Devolve o semáforo correspondente ao tipo de vaga. */
     private Semaphore semaforoDa(TipoVaga vaga) {
-        // TODO 7: uma linha
-        return null; // placeholder
+        if(vaga == TipoVaga.PRIORITARIA){
+            return vagasPrioritarias;
+        }
+        return vagasRegulares;
     }
 
     // ==================== CONSULTAS ====================
@@ -109,6 +133,11 @@ public class Estacionamento {
 
     public void exibirStatus() {
         System.out.println("\n=== STATUS DO ESTACIONAMENTO ===");
+        System.out.println("Vagas regulares disponiveis: " + vagasRegulares.availablePermits() + "/5");
+        System.out.println("Vagas prioritárias disponiveis: " + vagasPrioritarias.availablePermits() + "/2");
+        System.out.println("Total de entadas: " + totalEntradas);
+        System.out.println("Total de desistencias: " + totalDesistencias);
+        
         // TODO 8: exibir, usando availablePermits():
         //   Vagas regulares disponíveis: x/5
         //   Vagas prioritárias disponíveis: y/2
